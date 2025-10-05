@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown, ArrowUp } from 'lucide-react';
+import Card from '../components/Card';
 
 const MainPage = () => {
   const { role } = useParams();
@@ -35,7 +36,7 @@ const MainPage = () => {
       padding: 0,
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       position: 'relative',
-      overflow: 'hidden' // Чтобы модальное окно не выходило за пределы контейнера
+      overflow: 'hidden'
     },
     statusBar: {
       width: '100%',
@@ -76,27 +77,15 @@ const MainPage = () => {
       textAlign: 'center',
       margin: '24px 0'
     },
-    upperCard: {
-      width: '314px',
-      height: '236px',
+    centerText: {
       position: 'absolute',
-      top: '202px',
-      left: '39px',
-      backgroundColor: '#F7F8F9', // Такой же цвет как у нижней карточки
-      borderRadius: '20px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)', // Такая же тень как у нижней карточки
-      overflow: 'hidden'
-    },
-    lowerCard: {
-      width: '314px',
-      height: '236px',
-      position: 'absolute',
-      top: '497px',
-      left: '39px',
-      backgroundColor: '#F7F8F9',
-      borderRadius: '20px',
-      boxShadow: '0 4px 8px rgba(0, 0, 0, 0.1)',
-      overflow: 'hidden'
+      top: '50%',
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      color: '#888',
+      fontSize: '18px',
+      fontWeight: '400',
+      textAlign: 'center'
     },
     buttonContainer: {
       position: 'absolute',
@@ -131,7 +120,7 @@ const MainPage = () => {
       position: 'absolute',
       width: '390px',
       height: '673px',
-      top: isModalOpen ? '172px' : '100%', // Если модальное окно открыто, оно на позиции 172px, иначе за пределами экрана
+      top: isModalOpen ? '172px' : '100%',
       left: '50%',
       transform: 'translateX(-50%)',
       backgroundColor: 'white',
@@ -181,11 +170,8 @@ const MainPage = () => {
       {/* Title */}
       <h1 style={styles.title}>Scenario for Texas</h1>
 
-      {/* Upper Card */}
-      <div style={styles.upperCard}></div>
-
-      {/* Lower Card */}
-      <div style={styles.lowerCard}></div>
+      {/* Center Text */}
+      <div style={styles.centerText}>Add your first scenario</div>
 
       {/* Button */}
       <div style={styles.buttonContainer}>
@@ -204,5 +190,3 @@ const MainPage = () => {
 };
 
 export default MainPage;
-
-// раоаооа
