@@ -39,6 +39,43 @@ const MainPage = () => {
     setScenarios(savedScenarios);
   }, []);
 
+  // Загрузка сценария
+  const loadScenario = (scenario) => {
+    setFormData({
+      n: scenario.parameters.n || '',
+      p: scenario.parameters.p || '',
+      k: scenario.parameters.k || '',
+      ph: scenario.parameters.ph || '',
+      temperature: scenario.parameters.temperature || '',
+      humidity: scenario.parameters.humidity || '',
+      rainfall: scenario.parameters.rainfall || '',
+      zn: scenario.parameters.zn || '',
+      s: scenario.parameters.s || '',
+      peopleCount: scenario.parameters.peopleCount || '10',
+      maizePrice: scenario.parameters.maizePrice || '',
+      potatoPrice: scenario.parameters.potatoPrice || '',
+      wheatPrice: scenario.parameters.wheatPrice || '',
+      barleyPrice: scenario.parameters.barleyPrice || '',
+      beanPrice: scenario.parameters.beanPrice || '',
+      peaPrice: scenario.parameters.peaPrice || ''
+    });
+    setSelectedScenario(scenario);
+    localStorage.setItem('selectedScenarioId', scenario.id); // ДОБАВЬТЕ
+    setIsDropdownOpen(false);
+  };
+
+  useEffect(() => {
+    if (scenarios.length > 0) {
+      const savedScenarioId = localStorage.getItem('selectedScenarioId');
+      if (savedScenarioId) {
+        const scenario = scenarios.find(s => s.id === Number(savedScenarioId));
+        if (scenario && scenario.role === role) {
+          loadScenario(scenario);
+        }
+      }
+    }
+  }, [scenarios, role]);
+
   // Проверка роли
   useEffect(() => {
     const savedRole = localStorage.getItem('selectedRole');
@@ -49,6 +86,7 @@ const MainPage = () => {
     }
   }, [role, navigate]);
 
+  
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -185,18 +223,13 @@ const MainPage = () => {
     const updatedScenarios = [...existingScenarios, scenario];
     
     localStorage.setItem('scenarios', JSON.stringify(updatedScenarios));
+    localStorage.setItem('selectedScenarioId', scenario.id); // ДОБАВЬТЕ
     setScenarios(updatedScenarios);
     setSelectedScenario(scenario);
     setIsScenarioModalOpen(false);
   };
 
-  // Загрузка сценария
-  const loadScenario = (scenario) => {
-    setFormData(scenario.parameters);
-    setSelectedScenario(scenario);
-    setIsDropdownOpen(false);
-  };
-
+  
   // Создание нового сценария
   const handleCreateNewScenario = () => {
     setFormData({
@@ -210,15 +243,15 @@ const MainPage = () => {
       zn: '',
       s: '',
       peopleCount: '10',
-      maizePrice: '',      // ДОБАВЬТЕ
-      potatoPrice: '',     // ЭТИ
-      wheatPrice: '',      // СТРОКИ
-      barleyPrice: '',     
-      beanPrice: '',       
-      peaPrice: ''         
+      maizePrice: '',
+      potatoPrice: '',
+      wheatPrice: '',
+      barleyPrice: '',
+      beanPrice: '',
+      peaPrice: ''
     });
     setSelectedScenario(null);
-    setIsScenarioModalOpen(true);
+    // УДАЛИТЕ: setIsScenarioModalOpen(true);
     setIsDropdownOpen(false);
   };
 
@@ -815,6 +848,19 @@ const MainPage = () => {
                 />
               </div>
             </>
+          )}
+
+          {selectedScenario === null && (
+            <button
+              style={{
+                ...styles.calculateButton,
+                backgroundColor: '#2D9CDB',
+                margin: '0 20px 10px 20px'
+              }}
+              onClick={() => setIsScenarioModalOpen(true)}
+            >
+              Save as New Scenario
+            </button>
           )}
 
           <button
