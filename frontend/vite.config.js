@@ -8,13 +8,6 @@ export default defineConfig({
     host: '0.0.0.0',
     allowedHosts: [
       '*'
-    ],
-    preview: {
-      host: '0.0.0.0',
-      port: 10000,
-      allowedHosts: [
-        'terra-frontend-1fma.onrender.com'
-      ]
-    }
+    ]
   }
 })
