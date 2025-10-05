@@ -88,7 +88,10 @@ def predictProductivity(mode: str, depParam: dict, args={}):
     return result
 
 # ------------------ Flask сервер ------------------
+from flask_cors import CORS
+
 app = Flask(__name__)
+CORS(app) 
 
 @app.route('/predict', methods=['POST'])
 def predict():
