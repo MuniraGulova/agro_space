@@ -39,6 +39,43 @@ const MainPage = () => {
     setScenarios(savedScenarios);
   }, []);
 
+  // Загрузка сценария
+  const loadScenario = (scenario) => {
+    setFormData({
+      n: scenario.parameters.n || '',
+      p: scenario.parameters.p || '',
+      k: scenario.parameters.k || '',
+      ph: scenario.parameters.ph || '',
+      temperature: scenario.parameters.temperature || '',
+      humidity: scenario.parameters.humidity || '',
+      rainfall: scenario.parameters.rainfall || '',
+      zn: scenario.parameters.zn || '',
+      s: scenario.parameters.s || '',
+      peopleCount: scenario.parameters.peopleCount || '10',
+      maizePrice: scenario.parameters.maizePrice || '',
+      potatoPrice: scenario.parameters.potatoPrice || '',
+      wheatPrice: scenario.parameters.wheatPrice || '',
+      barleyPrice: scenario.parameters.barleyPrice || '',
+      beanPrice: scenario.parameters.beanPrice || '',
+      peaPrice: scenario.parameters.peaPrice || ''
+    });
+    setSelectedScenario(scenario);
+    localStorage.setItem('selectedScenarioId', scenario.id); // ДОБАВЬТЕ
+    setIsDropdownOpen(false);
+  };
+
+  useEffect(() => {
+    if (scenarios.length > 0) {
+      const savedScenarioId = localStorage.getItem('selectedScenarioId');
+      if (savedScenarioId) {
+        const scenario = scenarios.find(s => s.id === Number(savedScenarioId));
+        if (scenario && scenario.role === role) {
+          loadScenario(scenario);
+        }
+      }
+    }
+  }, [scenarios, role]);
+
   // Проверка роли
   useEffect(() => {
     const savedRole = localStorage.getItem('selectedRole');
@@ -49,6 +86,7 @@ const MainPage = () => {
     }
   }, [role, navigate]);
 
+  
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
@@ -88,6 +126,75 @@ const MainPage = () => {
       return;
     }
 
+    if (role === 'farmer' || role === 'FARMER') {
+      const priceFields = [
+        { name: 'maizePrice', label: 'Maize Price' },
+        { name: 'potatoPrice', label: 'Potato Price' },
+        { name: 'wheatPrice', label: 'Wheat Price' },
+        { name: 'barleyPrice', label: 'Barley Price' },
+        { name: 'beanPrice', label: 'Bean Price' },
+        { name: 'peaPrice', label: 'Pea Price' }
+      ];
+
+      const emptyPrices = priceFields.filter(field => 
+        formData[field.name] === '' || formData[field.name] === null || formData[field.name] === undefined
+      );
+
+      if (emptyPrices.length > 0) {
+        setCalcResult({
+          error: `Пожалуйста, заполните цены: ${emptyPrices.map(f => f.label).join(', ')}`
+        });
+        return;
+      }
+    }
+
+    // Автоматически сохраняем сценарий перед расчетом
+    const timestamp = new Date().toLocaleString('ru-RU', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    const scenarioName = selectedScenario ? selectedScenario.name : `${role} Scenario ${timestamp}`;
+    
+    let scenario;
+    if (selectedScenario) {
+      // Обновляем существующий сценарий
+      scenario = {
+        ...selectedScenario,
+        parameters: { ...formData }
+      };
+    } else {
+      // Создаем новый сценарий
+      scenario = {
+        id: Date.now(),
+        name: scenarioName,
+        role: role,
+        parameters: { ...formData },
+        createdAt: new Date().toISOString(),
+        description: 'Auto-saved scenario'
+      };
+    }
+
+    // Сохраняем сценарий в localStorage
+    const existingScenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+    let updatedScenarios;
+    
+    if (selectedScenario) {
+      updatedScenarios = existingScenarios.map(s => 
+        s.id === selectedScenario.id ? scenario : s
+      );
+    } else {
+      updatedScenarios = [...existingScenarios, scenario];
+    }
+    
+    localStorage.setItem('scenarios', JSON.stringify(updatedScenarios));
+    localStorage.setItem('selectedScenarioId', scenario.id.toString());
+    setScenarios(updatedScenarios);
+    setSelectedScenario(scenario);
+
     // Если все поля заполнены, продолжаем с отправкой данных
     const payload = {
         mode: role === 'astronaut' ? 'STATION' : 'FARM',
@@ -97,7 +204,6 @@ const MainPage = () => {
               square: 100
             } 
           : {
-              // Убираем дефолтные значения, используем только значения из формы
               Maize: { price: Number(formData.maizePrice) },
               Potato: { price: Number(formData.potatoPrice) },
               Wheat: { price: Number(formData.wheatPrice) },
@@ -163,18 +269,13 @@ const MainPage = () => {
     const updatedScenarios = [...existingScenarios, scenario];
     
     localStorage.setItem('scenarios', JSON.stringify(updatedScenarios));
+    localStorage.setItem('selectedScenarioId', scenario.id); // ДОБАВЬТЕ
     setScenarios(updatedScenarios);
     setSelectedScenario(scenario);
     setIsScenarioModalOpen(false);
   };
 
-  // Загрузка сценария
-  const loadScenario = (scenario) => {
-    setFormData(scenario.parameters);
-    setSelectedScenario(scenario);
-    setIsDropdownOpen(false);
-  };
-
+  
   // Создание нового сценария
   const handleCreateNewScenario = () => {
     setFormData({
@@ -187,10 +288,16 @@ const MainPage = () => {
       rainfall: '',
       zn: '',
       s: '',
-      peopleCount: '10' // Не забудьте добавить
+      peopleCount: '10',
+      maizePrice: '',
+      potatoPrice: '',
+      wheatPrice: '',
+      barleyPrice: '',
+      beanPrice: '',
+      peaPrice: ''
     });
     setSelectedScenario(null);
-    setIsScenarioModalOpen(true);
+    // УДАЛИТЕ: setIsScenarioModalOpen(true);
     setIsDropdownOpen(false);
   };
 
