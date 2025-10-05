@@ -22,8 +22,8 @@ const ResultCard = ({
       fontSize: '32px',
       fontWeight: '600',
       color: '#333',
-      marginBottom: '35px',
-      margin: 0,
+      marginBottom: '50px',
+      // margin: 0,  ← УДАЛИТЕ ЭТУ СТРОКУ
       textAlign: 'left'
     }}>
       {titleRu}

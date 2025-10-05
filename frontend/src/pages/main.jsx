@@ -56,11 +56,38 @@ const MainPage = () => {
   };
 
   const handleCalculate = async () => {
+    // Проверяем все обязательные поля
+    const requiredFields = [
+      { name: 'n', label: 'Nitrogen' },
+      { name: 'p', label: 'Phosphorus' },
+      { name: 'k', label: 'Potassium' },
+      { name: 'ph', label: 'pH Level' },
+      { name: 'temperature', label: 'Temperature' },
+      { name: 'humidity', label: 'Humidity' },
+      { name: 'rainfall', label: 'Rainfall' },
+      { name: 'zn', label: 'Zinc' },
+      { name: 's', label: 'Sulfur' }
+    ];
+
+    // Находим пустые поля
+    const emptyFields = requiredFields.filter(field => 
+      formData[field.name] === '' || formData[field.name] === null || formData[field.name] === undefined
+    );
+
+    // Если есть пустые поля, показываем ошибку
+    if (emptyFields.length > 0) {
+      setCalcResult({
+        error: `Пожалуйста, заполните все поля: ${emptyFields.map(f => f.label).join(', ')}`
+      });
+      return;
+    }
+
+    // Если все поля заполнены, продолжаем с отправкой данных
     const payload = {
       mode: role === 'astronaut' ? 'STATION' : 'FARM',
       depParam: role === 'astronaut' 
         ? { 
-            peopleNumber: Number(formData.peopleCount) || 10, // Берем из формы
+            peopleNumber: Number(formData.peopleCount),
             square: 100 
           } 
         : {
@@ -72,35 +99,45 @@ const MainPage = () => {
             Pea: { price: 120 }
           },
       args: {
-        N: Number(formData.n) || 1,
-        P: Number(formData.p) || 1,
-        K: Number(formData.k) || 1,
-        ph: formData.ph !== '' ? Number(formData.ph) : 6.5,
-        temperature: Number(formData.temperature) || 25,
-        humidity: Number(formData.humidity) || 70,
-        rainfall: Number(formData.rainfall) || 10,
-        Zn: Number(formData.zn) || 2,
-        S: Number(formData.s) || 10
+        N: Number(formData.n),
+        P: Number(formData.p),
+        K: Number(formData.k),
+        ph: Number(formData.ph),
+        temperature: Number(formData.temperature),
+        humidity: Number(formData.humidity),
+        rainfall: Number(formData.rainfall),
+        Zn: Number(formData.zn),
+        S: Number(formData.s)
       }
     };
 
     try {
-      const res = await fetch('http://localhost:5000/predict', {
+      // Send POST request to server
+      const response = await fetch('http://localhost:5000/predict', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      const data = await res.json();
-      console.log('Calculate response:', data);
+      // Parse and handle the response
+      const data = await response.json();
+      console.log('Server response:', data);
+
+      // Update the UI with results
       setCalcResult(data);
       
+      // Close the modal after successful calculation
       setIsModalOpen(false);
-    } catch (err) {
-      console.error('Calculate error:', err);
-      alert('Ошибка при расчете: ' + err.message);
+
+    } catch (error) {
+      console.error('Calculation error:', error);
+      setCalcResult({ error: error.message });
     }
   };
 
@@ -159,7 +196,7 @@ const MainPage = () => {
       padding: 0,
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'auto' 
     },
     scenarioSelector: {
       width: '90%',
@@ -218,7 +255,9 @@ const MainPage = () => {
       bottom: '40px',
       left: '50%',
       transform: 'translateX(-50%)',
-      zIndex: 10
+      zIndex: 10,
+      backgroundColor: 'transparent', 
+      pointerEvents: 'none',
     },
     button: {
       width: '56px',
@@ -229,8 +268,9 @@ const MainPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0D6E6E',
-      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)'
+      backgroundColor: '#0f172a',
+      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
+      pointerEvents: 'auto', // ДОБАВЬТЕ ЭТУ СТРОКУ
     },
     modalOverlay: {
       position: 'fixed',
@@ -266,14 +306,14 @@ const MainPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0D6E6E',
+      backgroundColor: '#0f172a',
       boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
     },
     inputContainer: {
       padding: '40px 20px 20px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '84px',
+      gap: '34px',
       height: '100%',
       overflow: 'auto',
     },
@@ -301,7 +341,7 @@ const MainPage = () => {
       right: '0',
       margin: '20px 20px 70px 20px',
       padding: '16px',
-      backgroundColor: '#0D6E6E',
+      backgroundColor: '#0f172a',
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -310,6 +350,45 @@ const MainPage = () => {
       cursor: 'pointer',
       boxShadow: '0 2px 8px rgba(13, 110, 110, 0.25)',
     },
+    // Add new styles for error popup
+    errorOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    },
+    errorPopup: {
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      padding: '24px',
+      maxWidth: '300px',
+      width: '90%',
+      textAlign: 'center',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+    },
+    errorMessage: {
+      color: '#E53E3E',
+      marginBottom: '20px',
+      fontSize: '16px',
+      lineHeight: '1.5'
+    },
+    errorButton: {
+      padding: '12px 24px',
+      backgroundColor: '#0f172a',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '16px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      width: '100%'
+    }
   };
 
   console.log('Current role:', role); // Добавьте эту строку
@@ -357,7 +436,7 @@ const MainPage = () => {
                 padding: '12px 16px',
                 cursor: 'pointer',
                 backgroundColor: selectedScenario?.id === scenario.id ? '#F0F9F9' : 'transparent',
-                color: selectedScenario?.id === scenario.id ? '#0D6E6E' : '#2D3748',
+                color: selectedScenario?.id === scenario.id ? '#0f172a' : '#2D3748',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 flexDirection: 'column',
@@ -377,7 +456,7 @@ const MainPage = () => {
             style={{
               padding: '12px 16px',
               cursor: 'pointer',
-              color: '#0D6E6E',
+              color: '#0f172a',
               borderTop: '1px solid #E2E8F0',
               display: 'flex',
               alignItems: 'center',
@@ -397,10 +476,6 @@ const MainPage = () => {
         </div>
       </div>
 
-      <h1 style={styles.title}>
-        {selectedScenario ? selectedScenario.name : 'Select a Scenario'}
-      </h1>
-
       {/* Center content - либо инструкция, либо результаты */}
       {!selectedScenario && !calcResult && (
         <div style={{
@@ -417,7 +492,7 @@ const MainPage = () => {
             onClick={() => setIsDropdownOpen(true)}
             style={{
               padding: '12px 24px',
-              backgroundColor: '#0D6E6E',
+              backgroundColor: '#0f172a',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -438,14 +513,14 @@ const MainPage = () => {
 
       {/* Results display */}
       {calcResult && !calcResult.error && (
-        <div style={{
-          width: '90%',
-          maxWidth: '414px',
-          margin: '0 auto',
-          paddingBottom: '120px',
-          overflowY: 'auto',
-          height: 'calc(100vh - 300px)'
-        }}>
+          <div style={{
+            width: '90%',
+            maxWidth: '414px',
+            margin: '0 auto',
+            paddingBottom: '140px', // Увеличили с 120px до 140px
+            overflowY: 'auto',
+            height: 'calc(100vh - 300px)'
+          }}>
           <div style={{
             marginBottom: '20px',
             padding: '16px',
@@ -456,7 +531,7 @@ const MainPage = () => {
             <h2 style={{
               margin: 0,
               fontSize: '20px',
-              color: '#0D6E6E',
+              color: '#0f172a',
               fontWeight: '600'
             }}>
               {role === 'astronaut' 
@@ -479,9 +554,20 @@ const MainPage = () => {
         </div>
       )}
 
+      {/* Error display */}
       {calcResult && calcResult.error && (
-        <div style={styles.centerText}>
-          <span style={{ color: '#E53E3E' }}>Error: {calcResult.error}</span>
+        <div style={styles.errorOverlay}>
+          <div style={styles.errorPopup}>
+            <div style={styles.errorMessage}>
+              {calcResult.error}
+            </div>
+            <button 
+              style={styles.errorButton}
+              onClick={() => setCalcResult(null)}
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
 

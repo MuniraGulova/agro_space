@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 import astronautImg from './astronaut.png'; 
 import farmerImg from './farmer.png';
@@ -7,7 +7,6 @@ import farmerImg from './farmer.png';
 const RoleSelectionPage = () => {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const navigate = useNavigate();
-  const { role } = useParams();
 
   const handleContinue = () => {
     if (selectedProfile) {
@@ -41,6 +40,7 @@ const RoleSelectionPage = () => {
       alignItems: 'center',
       gap: '30px',
       width: '100%',
+      marginTop: '60px', // Added this line to move container lower
     },
     card: {
       width: '256px',
