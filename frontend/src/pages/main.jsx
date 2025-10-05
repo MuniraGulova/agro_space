@@ -305,7 +305,7 @@ const MainPage = () => {
       peaPrice: ''
     });
     setSelectedScenario(null);
-    // УДАЛИТЕ: setIsScenarioModalOpen(true);
+    setIsScenarioModalOpen(true);
     setIsDropdownOpen(false);
   };
 
