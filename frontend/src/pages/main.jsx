@@ -26,8 +26,6 @@ const MainPage = () => {
     zn: '',
     s: ''
   });
-  const [scenarios, setScenarios] = useState([]);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
   const [currentScenario, setCurrentScenario] = useState(null);
 
