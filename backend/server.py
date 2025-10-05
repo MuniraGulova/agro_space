@@ -28,7 +28,7 @@ CULTURE_EN_TO_RU = {
     "Pea": "Горох"
 }
 
-MODEL_FILE = './crop_yield_model.pkl'
+MODEL_FILE = './backend/crop_yield_model.pkl'
 with open(MODEL_FILE, 'rb') as f:
     model_data = pickle.load(f)
 
