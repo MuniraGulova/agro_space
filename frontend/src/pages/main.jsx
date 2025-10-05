@@ -5,6 +5,14 @@ import ScenarioNameModal from '../components/addscenario';
 import ResultCard from '../components/ResultCard';
 
 const MainPage = () => {
+  const CULTURE_IMAGES = {
+    'Maize': '/images/kukuruza.png',   
+    'Potato': '/images/potato.png',
+    'Wheat': '/images/psheniza.png',
+    'Barley': '/images/yacmen.png', // ячмень
+    'Bean': '/images/fasol.png', // фасоль
+    'Pea': '/images/goroh.png', // горох
+  };
   const { role } = useParams();
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(null);
@@ -663,6 +671,7 @@ const MainPage = () => {
               productivity={culture.productivity}
               value={culture.value}
               isAstronaut={role === 'astronaut'}
+              image={CULTURE_IMAGES[culture.culture]}
             />
           ))}
         </div>
