@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ChevronDown, ArrowUp } from 'lucide-react';
+import { ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
 import Card from '../components/Card';
+
 
 const MainPage = () => {
   const { role } = useParams();
@@ -117,18 +118,48 @@ const MainPage = () => {
       display: isModalOpen ? 'block' : 'none'
     },
     modal: {
-      position: 'absolute',
-      width: '390px',
+      position: 'fixed',
+      width: '100%',
       height: '673px',
-      top: isModalOpen ? '172px' : '100%',
+      bottom: isModalOpen ? '0' : '-673px', // Анимация снизу
+      left: '0',
+      transform: 'none',
+      backgroundColor: 'white',
+      transition: 'bottom 0.3s ease-in-out',
+      zIndex: 101,
+    },
+    modalButton: {
+      position: 'absolute',
+      top: 0,
+      left: '50%',
+      transform: 'translate(-50%, -50%)',
+      width: '56px',
+      height: '56px',
+      borderRadius: '50%',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#0D6E6E',
+      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
+    },
+    modalCloseButton: {
+      position: 'absolute',
+      top: '-28px', // Половина высоты кнопки, чтобы она находилась на границе модального окна
       left: '50%',
       transform: 'translateX(-50%)',
-      backgroundColor: 'white',
-      borderTopLeftRadius: '20px',
-      borderTopRightRadius: '20px',
-      boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.15)',
-      transition: 'top 0.3s ease-in-out',
-      zIndex: 101
+      width: '56px',
+      height: '56px',
+      borderRadius: '50%',
+      border: 'none',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#0D6E6E',
+      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
+      zIndex: 102
     }
   };
 
@@ -184,7 +215,14 @@ const MainPage = () => {
       <div style={styles.modalOverlay} onClick={toggleModal}></div>
 
       {/* Modal Content */}
-      <div style={styles.modal}></div>
+      <div style={styles.modal}>
+        {isModalOpen && (
+          <button style={styles.modalButton} onClick={toggleModal}>
+            <ArrowDown style={{ color: 'white' }} />
+          </button>
+        )}
+        {/* Здесь остальное содержимое модального окна */}
+      </div>
     </div>
   );
 };
