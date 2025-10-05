@@ -22,7 +22,13 @@ const MainPage = () => {
     rainfall: '',
     zn: '',
     s: '',
-    peopleCount: '10' // Добавили поле для космонавта
+    peopleCount: '10',
+    maizePrice: '',
+    potatoPrice: '',
+    wheatPrice: '',
+    barleyPrice: '',
+    beanPrice: '',
+    peaPrice: ''
   });
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
   const [calcResult, setCalcResult] = useState(null);
@@ -60,7 +66,7 @@ const MainPage = () => {
     const requiredFields = [
       { name: 'n', label: 'Nitrogen' },
       { name: 'p', label: 'Phosphorus' },
-      { name: 'k', label: 'Potassium' },
+      { name: 'k', label: 'Kalium' },
       { name: 'ph', label: 'pH Level' },
       { name: 'temperature', label: 'Temperature' },
       { name: 'humidity', label: 'Humidity' },
@@ -88,15 +94,16 @@ const MainPage = () => {
       depParam: role === 'astronaut' 
         ? { 
             peopleNumber: Number(formData.peopleCount),
-            square: 100 
+            square: 100  // This could also be made into a form field if needed
           } 
         : {
-            Maize: { price: 200 },
-            Potato: { price: 50 },
-            Wheat: { price: 150 },
-            Barley: { price: 100 },
-            Bean: { price: 180 },
-            Pea: { price: 120 }
+            // Use actual prices from form data if you want them to be configurable
+            Maize: { price: Number(formData.maizePrice) },
+            Potato: { price: Number(formData.potatoPrice) },
+            Wheat: { price: Number(formData.wheatPrice) },
+            Barley: { price: Number(formData.barleyPrice) },
+            Bean: { price: Number(formData.beanPrice) },
+            Pea: { price: Number(formData.peaPrice) }
           },
       args: {
         N: Number(formData.n),
@@ -268,7 +275,7 @@ const MainPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#003b46',
       boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
       pointerEvents: 'auto', // ДОБАВЬТЕ ЭТУ СТРОКУ
     },
@@ -306,7 +313,7 @@ const MainPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#003b46',
       boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
     },
     inputContainer: {
@@ -341,7 +348,7 @@ const MainPage = () => {
       right: '0',
       margin: '20px 20px 70px 20px',
       padding: '16px',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#003b46',
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -380,7 +387,7 @@ const MainPage = () => {
     },
     errorButton: {
       padding: '12px 24px',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#003b46',
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -436,7 +443,7 @@ const MainPage = () => {
                 padding: '12px 16px',
                 cursor: 'pointer',
                 backgroundColor: selectedScenario?.id === scenario.id ? '#F0F9F9' : 'transparent',
-                color: selectedScenario?.id === scenario.id ? '#0f172a' : '#2D3748',
+                color: selectedScenario?.id === scenario.id ? '#003b46' : '#2D3748',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 flexDirection: 'column',
@@ -456,7 +463,7 @@ const MainPage = () => {
             style={{
               padding: '12px 16px',
               cursor: 'pointer',
-              color: '#0f172a',
+              color: '#003b46',
               borderTop: '1px solid #E2E8F0',
               display: 'flex',
               alignItems: 'center',
@@ -492,7 +499,7 @@ const MainPage = () => {
             onClick={() => setIsDropdownOpen(true)}
             style={{
               padding: '12px 24px',
-              backgroundColor: '#0f172a',
+              backgroundColor: '#003b46',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -531,7 +538,7 @@ const MainPage = () => {
             <h2 style={{
               margin: 0,
               fontSize: '20px',
-              color: '#0f172a',
+              color: '#003b46',
               fontWeight: '600'
             }}>
               {role === 'astronaut' 
@@ -609,7 +616,7 @@ const MainPage = () => {
             />
           </div>
           <div style={styles.inputGroup}>
-            <label style={styles.label}>Potassium (K)</label>
+            <label style={styles.label}>Kalium (K)</label>
             <input
               type="number"
               name="k"
@@ -702,6 +709,84 @@ const MainPage = () => {
                 min="1"
               />
             </div>
+          )}
+
+        {/* Add price fields for farmer role */}
+        {(role === 'farmer' || role === 'FARMER') && (
+          <>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Maize Price ($ per kg)</label>
+              <input
+                type="number"
+                name="maizePrice"
+                value={formData.maizePrice}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter maize price"
+                step="0.01"
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Potato Price ($ per kg)</label>
+              <input
+                type="number"
+                name="potatoPrice"
+                value={formData.potatoPrice}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter potato price"
+                step="0.01"
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Wheat Price ($ per kg)</label>
+              <input
+                type="number"
+                name="wheatPrice"
+                value={formData.wheatPrice}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter wheat price"
+                step="0.01"
+              />
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Barley Price ($ per kg)</label>
+                <input
+                  type="number"
+                  name="barleyPrice"
+                  value={formData.barleyPrice}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  placeholder="Enter barley price"
+                  step="0.01"
+                />
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Bean Price ($ per kg)</label>
+                <input
+                  type="number"
+                  name="beanPrice"
+                  value={formData.beanPrice}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  placeholder="Enter bean price"
+                  step="0.01"
+                />
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Pea Price ($ per kg)</label>
+                <input
+                  type="number"
+                  name="peaPrice"
+                  value={formData.peaPrice}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  placeholder="Enter pea price"
+                  step="0.01"
+                />
+              </div>
+            </>
           )}
 
           <button

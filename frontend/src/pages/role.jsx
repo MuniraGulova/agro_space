@@ -79,7 +79,7 @@ const RoleSelectionPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#003b46',
       cursor: 'pointer',
       boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
     },

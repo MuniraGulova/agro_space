@@ -75,28 +75,6 @@ const ResultCard = ({
                 ${value.toFixed(0)}
               </span>
             </div>
-            <div style={{
-              fontSize: '18px',
-              color: '#999',
-              textAlign: 'left',
-              width: '100%',
-              lineHeight: '1.6'
-            }}>
-              Harvest: <span style={{ fontWeight: '500', color: '#666' }}>
-                {(productivity * 100).toFixed(0)} kg
-              </span>
-            </div>
-            <div style={{
-              fontSize: '18px',
-              color: '#999',
-              textAlign: 'left',
-              width: '100%',
-              lineHeight: '1.6'
-            }}>
-              Yield: <span style={{ fontWeight: '500', color: '#666' }}>
-                40%
-              </span>
-            </div>
           </>
         )}
       </div>
