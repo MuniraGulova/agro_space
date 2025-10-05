@@ -2,6 +2,7 @@
     Для запуска проекта нужно установить зависимости для сервера:
         ```
         pip install flask flask-cors scikit-learn==1.6.1
+        npm install
         ```
 
     Приложение работает на React. Для его запуска нужно перейти в папку frontend и запустить команду:
@@ -21,6 +22,7 @@ To start the project, you need to install the server dependencies:
 
 ```
 pip install flask flask-cors scikit-learn==1.6.1
+npm install
 ```
 
 The application is built with React. To run the frontend, navigate to the **frontend** folder and execute:
