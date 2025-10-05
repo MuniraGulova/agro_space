@@ -57,7 +57,7 @@ const ScenarioNameModal = ({ isOpen, onClose, onSave }) => {
     button: {
       width: '60%', // уменьшили с 100%
       padding: '14px', // уменьшили с 16px
-      backgroundColor: '#0D6E6E',
+      backgroundColor: '#003b46',
       color: 'white',
       border: 'none',
       borderRadius: '12px',

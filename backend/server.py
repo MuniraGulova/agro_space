@@ -64,7 +64,7 @@ def predictProductivity(mode: str, depParam: dict, args={}):
 
         if mode == "FARM":
             price = depParam.get(culture, {}).get("price", 0)
-            value = productivity * price * 1000
+            value = productivity * price * 1000 # цена за тонну, а продуктивность в тоннах с гектара
         elif mode == "STATION":
             peopleNumber = depParam["peopleNumber"]
             square = depParam["square"]
@@ -73,7 +73,7 @@ def predictProductivity(mode: str, depParam: dict, args={}):
             totalCalories = productivityKgM2 * square * CULTURES_DATAS[culture].calories_per_kg
             days = totalCalories / neededCalories
             productivity = productivityKgM2
-            value = days
+            value = days # количество дней, на которое хватит урожая
 
         tmp = {
             "culture": culture,

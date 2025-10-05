@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import astronautImg from './astronaut.png'; // добавь свои картинки
+import astronautImg from './astronaut.png'; 
 import farmerImg from './farmer.png';
 
 const RoleSelectionPage = () => {
@@ -40,6 +40,7 @@ const RoleSelectionPage = () => {
       alignItems: 'center',
       gap: '30px',
       width: '100%',
+      marginTop: '60px', // Added this line to move container lower
     },
     card: {
       width: '256px',
@@ -78,7 +79,7 @@ const RoleSelectionPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0f172a',
+      backgroundColor: '#003b46',
       cursor: 'pointer',
       boxShadow: '0 4px 12px rgba(0,0,0,0.2)',
     },

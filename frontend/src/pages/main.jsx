@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import ScenarioNameModal from '../components/addscenario';
+import ResultCard from '../components/ResultCard';
 
 const MainPage = () => {
   const { role } = useParams();
@@ -10,11 +11,7 @@ const MainPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState(null);
-  const [scenarios] = useState([
-    { id: 1, name: 'Irrigation Plan', description: 'Optimize water usage' },
-    { id: 2, name: 'Soil Analysis', description: 'Check soil nutrients' },
-    { id: 3, name: 'Growth Forecast', description: 'Predict crop yields' }
-  ]);
+  const [scenarios, setScenarios] = useState([]);
   const [formData, setFormData] = useState({
     n: '',
     p: '',
@@ -24,12 +21,17 @@ const MainPage = () => {
     humidity: '',
     rainfall: '',
     zn: '',
-    s: ''
+    s: '',
+    peopleCount: '10',
+    maizePrice: '',
+    potatoPrice: '',
+    wheatPrice: '',
+    barleyPrice: '',
+    beanPrice: '',
+    peaPrice: ''
   });
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
-  const [currentScenario, setCurrentScenario] = useState(null);
-
-
+  const [calcResult, setCalcResult] = useState(null);
 
   // Загрузка сценариев из localStorage при старте
   useEffect(() => {
@@ -40,8 +42,6 @@ const MainPage = () => {
   // Проверка роли
   useEffect(() => {
     const savedRole = localStorage.getItem('selectedRole');
-
-    // Если роль не выбрана или не соответствует параметру URL, перенаправляем на страницу выбора роли
     if (!savedRole || (role !== savedRole && role !== 'astronaut' && role !== 'farmer')) {
       navigate('/');
     } else {
@@ -53,7 +53,6 @@ const MainPage = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -62,42 +61,137 @@ const MainPage = () => {
     }));
   };
 
-  const [calcResult, setCalcResult] = useState(null);
-
   const handleCalculate = async () => {
-    // Build payload using form values, with exact numbers requested by user as defaults
+    // Проверяем все обязательные поля
+    const requiredFields = [
+      { name: 'n', label: 'Nitrogen' },
+      { name: 'p', label: 'Phosphorus' },
+      { name: 'k', label: 'Kalium' },
+      { name: 'ph', label: 'pH Level' },
+      { name: 'temperature', label: 'Temperature' },
+      { name: 'humidity', label: 'Humidity' },
+      { name: 'rainfall', label: 'Rainfall' },
+      { name: 'zn', label: 'Zinc' },
+      { name: 's', label: 'Sulfur' }
+    ];
+
+    // Находим пустые поля
+    const emptyFields = requiredFields.filter(field => 
+      formData[field.name] === '' || formData[field.name] === null || formData[field.name] === undefined
+    );
+
+    // Если есть пустые поля, показываем ошибку
+    if (emptyFields.length > 0) {
+      setCalcResult({
+        error: `Пожалуйста, заполните все поля: ${emptyFields.map(f => f.label).join(', ')}`
+      });
+      return;
+    }
+
+    // Если все поля заполнены, продолжаем с отправкой данных
     const payload = {
-      mode: 'STATION',
-      depParam: { peopleNumber: 10, square: 100 },
+      mode: role === 'astronaut' ? 'STATION' : 'FARM',
+      depParam: role === 'astronaut' 
+        ? { 
+            peopleNumber: Number(formData.peopleCount),
+            square: 100  // This could also be made into a form field if needed
+          } 
+        : {
+            // Use actual prices from form data if you want them to be configurable
+            Maize: { price: Number(formData.maizePrice) },
+            Potato: { price: Number(formData.potatoPrice) },
+            Wheat: { price: Number(formData.wheatPrice) },
+            Barley: { price: Number(formData.barleyPrice) },
+            Bean: { price: Number(formData.beanPrice) },
+            Pea: { price: Number(formData.peaPrice) }
+          },
       args: {
-        N: Number(formData.n) || 1,
-        P: Number(formData.p) || 1,
-        K: Number(formData.k) || 1,
-        ph: formData.ph !== '' ? Number(formData.ph) : 6.5,
-        temperature: Number(formData.temperature) || 25,
-        humidity: Number(formData.humidity) || 70,
-        rainfall: Number(formData.rainfall) || 10,
-        Zn: Number(formData.zn) || 2,
-        S: Number(formData.s) || 10
+        N: Number(formData.n),
+        P: Number(formData.p),
+        K: Number(formData.k),
+        ph: Number(formData.ph),
+        temperature: Number(formData.temperature),
+        humidity: Number(formData.humidity),
+        rainfall: Number(formData.rainfall),
+        Zn: Number(formData.zn),
+        S: Number(formData.s)
       }
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/calculate', {
+      // Send POST request to server
+      const response = await fetch('http://localhost:5000/predict', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json'
+        },
         body: JSON.stringify(payload)
       });
 
-      if (!res.ok) throw new Error(`Server returned ${res.status}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      const data = await res.json();
-      console.log('Calculate response:', data);
+      // Parse and handle the response
+      const data = await response.json();
+      console.log('Server response:', data);
+
+      // Update the UI with results
       setCalcResult(data);
-    } catch (err) {
-      console.error('Calculate error:', err);
-      setCalcResult({ error: err.message });
+      
+      // Close the modal after successful calculation
+      setIsModalOpen(false);
+
+    } catch (error) {
+      console.error('Calculation error:', error);
+      setCalcResult({ error: error.message });
     }
+  };
+
+  // Сохранение сценария
+  const handleScenarioSave = (name) => {
+    const scenario = {
+      id: Date.now(),
+      name: name,
+      role: role,
+      parameters: formData,
+      createdAt: new Date().toISOString(),
+      description: 'Custom scenario'
+    };
+    
+    const existingScenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+    const updatedScenarios = [...existingScenarios, scenario];
+    
+    localStorage.setItem('scenarios', JSON.stringify(updatedScenarios));
+    setScenarios(updatedScenarios);
+    setSelectedScenario(scenario);
+    setIsScenarioModalOpen(false);
+  };
+
+  // Загрузка сценария
+  const loadScenario = (scenario) => {
+    setFormData(scenario.parameters);
+    setSelectedScenario(scenario);
+    setIsDropdownOpen(false);
+  };
+
+  // Создание нового сценария
+  const handleCreateNewScenario = () => {
+    setFormData({
+      n: '',
+      p: '',
+      k: '',
+      ph: '',
+      temperature: '',
+      humidity: '',
+      rainfall: '',
+      zn: '',
+      s: '',
+      peopleCount: '10' // Не забудьте добавить
+    });
+    setSelectedScenario(null);
+    setIsScenarioModalOpen(true);
+    setIsDropdownOpen(false);
   };
 
   const styles = {
@@ -109,7 +203,7 @@ const MainPage = () => {
       padding: 0,
       fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'auto' 
     },
     scenarioSelector: {
       width: '90%',
@@ -146,23 +240,6 @@ const MainPage = () => {
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       border: '1px solid #E2E8F0'
     },
-    dropdownItem: {
-      padding: '16px 20px',
-      borderBottom: '1px solid #eee',
-      color: '#666',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-    },
-    createScenario: {
-      padding: '16px 20px',
-      color: '#0D6E6E',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      cursor: 'pointer',
-      fontWeight: '500',
-      transition: 'background-color 0.2s',
-    },
     title: {
       fontSize: '24px',
       fontWeight: '500',
@@ -185,7 +262,9 @@ const MainPage = () => {
       bottom: '40px',
       left: '50%',
       transform: 'translateX(-50%)',
-      zIndex: 10
+      zIndex: 10,
+      backgroundColor: 'transparent', 
+      pointerEvents: 'none',
     },
     button: {
       width: '56px',
@@ -196,8 +275,9 @@ const MainPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0D6E6E',
-      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)'
+      backgroundColor: '#003b46',
+      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
+      pointerEvents: 'auto', // ДОБАВЬТЕ ЭТУ СТРОКУ
     },
     modalOverlay: {
       position: 'fixed',
@@ -233,14 +313,14 @@ const MainPage = () => {
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      backgroundColor: '#0D6E6E',
+      backgroundColor: '#003b46',
       boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
     },
     inputContainer: {
       padding: '40px 20px 20px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '16px',
+      gap: '34px',
       height: '100%',
       overflow: 'auto',
     },
@@ -268,7 +348,7 @@ const MainPage = () => {
       right: '0',
       margin: '20px 20px 70px 20px',
       padding: '16px',
-      backgroundColor: '#0D6E6E',
+      backgroundColor: '#003b46',
       color: 'white',
       border: 'none',
       borderRadius: '8px',
@@ -277,19 +357,58 @@ const MainPage = () => {
       cursor: 'pointer',
       boxShadow: '0 2px 8px rgba(13, 110, 110, 0.25)',
     },
+    // Add new styles for error popup
+    errorOverlay: {
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 1000
+    },
+    errorPopup: {
+      backgroundColor: 'white',
+      borderRadius: '12px',
+      padding: '24px',
+      maxWidth: '300px',
+      width: '90%',
+      textAlign: 'center',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)'
+    },
+    errorMessage: {
+      color: '#E53E3E',
+      marginBottom: '20px',
+      fontSize: '16px',
+      lineHeight: '1.5'
+    },
+    errorButton: {
+      padding: '12px 24px',
+      backgroundColor: '#003b46',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '16px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      width: '100%'
+    }
   };
 
-  // Show loading while checking role
+  console.log('Current role:', role); // Добавьте эту строку
+  console.log('Is astronaut?', role === 'astronaut'); // И эту
+
   if (selectedRole === null) {
     return <div style={{ ...styles.container, justifyContent: 'center', alignItems: 'center' }}>Loading...</div>;
   }
 
-  // Фильтруем сценарии по текущей роли
   const roleScenarios = scenarios.filter(s => s.role === role);
 
   return (
     <div style={styles.container}>
-      {/* Scenario Selector with Dropdown */}
       <div style={styles.scenarioSelector}>
         <div 
           style={{
@@ -316,41 +435,35 @@ const MainPage = () => {
           />
         </div>
 
-        {/* Dropdown Menu */}
         <div style={styles.dropdown}>
-          {scenarios.map((scenario) => (
+          {roleScenarios.map((scenario) => (
             <div
               key={scenario.id}
               style={{
                 padding: '12px 16px',
                 cursor: 'pointer',
                 backgroundColor: selectedScenario?.id === scenario.id ? '#F0F9F9' : 'transparent',
-                color: selectedScenario?.id === scenario.id ? '#0D6E6E' : '#2D3748',
+                color: selectedScenario?.id === scenario.id ? '#003b46' : '#2D3748',
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px',
-                ':hover': {
-                  backgroundColor: '#F7FAFC'
-                }
+                gap: '4px'
               }}
-              onClick={() => {
-                setSelectedScenario(scenario);
-                setIsDropdownOpen(false);
-              }}
+              onClick={() => loadScenario(scenario)}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F7FAFC'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedScenario?.id === scenario.id ? '#F0F9F9' : 'transparent'}
             >
               <span style={{ fontWeight: '500' }}>{scenario.name}</span>
-              <span style={{ 
-                fontSize: '14px',
-                color: '#718096'
-              }}>{scenario.description}</span>
+              <span style={{ fontSize: '14px', color: '#718096' }}>
+                {scenario.description || 'Custom scenario'}
+              </span>
             </div>
           ))}
           <div
             style={{
               padding: '12px 16px',
               cursor: 'pointer',
-              color: '#0D6E6E',
+              color: '#003b46',
               borderTop: '1px solid #E2E8F0',
               display: 'flex',
               alignItems: 'center',
@@ -359,9 +472,10 @@ const MainPage = () => {
             }}
             onClick={(e) => {
               e.stopPropagation();
-              toggleModal();
-              setIsDropdownOpen(false);
+              handleCreateNewScenario();
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F7FAFC'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <Plus size={16} />
             <span>Create New Scenario</span>
@@ -369,13 +483,8 @@ const MainPage = () => {
         </div>
       </div>
 
-      {/* Title */}
-      <h1 style={styles.title}>
-        {selectedScenario ? selectedScenario.name : 'Select a Scenario'}
-      </h1>
-
-      {/* Center Text */}
-      {!selectedScenario && (
+      {/* Center content - либо инструкция, либо результаты */}
+      {!selectedScenario && !calcResult && (
         <div style={{
           ...styles.centerText,
           display: 'flex',
@@ -390,7 +499,7 @@ const MainPage = () => {
             onClick={() => setIsDropdownOpen(true)}
             style={{
               padding: '12px 24px',
-              backgroundColor: '#0D6E6E',
+              backgroundColor: '#003b46',
               color: 'white',
               border: 'none',
               borderRadius: '8px',
@@ -406,6 +515,66 @@ const MainPage = () => {
             <Plus size={16} />
             Select Scenario
           </button>
+        </div>
+      )}
+
+      {/* Results display */}
+      {calcResult && !calcResult.error && (
+          <div style={{
+            width: '90%',
+            maxWidth: '414px',
+            margin: '0 auto',
+            paddingBottom: '140px', // Увеличили с 120px до 140px
+            overflowY: 'auto',
+            height: 'calc(100vh - 300px)'
+          }}>
+          <div style={{
+            marginBottom: '20px',
+            padding: '16px',
+            backgroundColor: '#E6F7F7',
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <h2 style={{
+              margin: 0,
+              fontSize: '20px',
+              color: '#003b46',
+              fontWeight: '600'
+            }}>
+              {role === 'astronaut' 
+                ? `Total: ${calcResult.total.toFixed(0)} days` 
+                : `Total revenue: $${calcResult.total.toFixed(0)}`
+              }
+            </h2>
+          </div>
+
+          {calcResult.cultures.map((culture, index) => (
+            <ResultCard
+              key={index}
+              title={culture.culture}
+              titleRu={culture.culture} 
+              productivity={culture.productivity}
+              value={culture.value}
+              isAstronaut={role === 'astronaut'}
+            />
+          ))}
+        </div>
+      )}
+
+      {/* Error display */}
+      {calcResult && calcResult.error && (
+        <div style={styles.errorOverlay}>
+          <div style={styles.errorPopup}>
+            <div style={styles.errorMessage}>
+              {calcResult.error}
+            </div>
+            <button 
+              style={styles.errorButton}
+              onClick={() => setCalcResult(null)}
+            >
+              OK
+            </button>
+          </div>
         </div>
       )}
 
@@ -447,7 +616,7 @@ const MainPage = () => {
             />
           </div>
           <div style={styles.inputGroup}>
-            <label style={styles.label}>Potassium (K)</label>
+            <label style={styles.label}>Kalium (K)</label>
             <input
               type="number"
               name="k"
@@ -526,7 +695,100 @@ const MainPage = () => {
             />
           </div>
 
-          {/* Add Calculate button after all inputs */}
+          {/* Add new field for astronaut role */}
+          {(role === 'astronaut' || role === 'ASTRONAUT') && (
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Number of People</label>
+              <input
+                type="number"
+                name="peopleCount"
+                value={formData.peopleCount}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter number of people"
+                min="1"
+              />
+            </div>
+          )}
+
+        {/* Add price fields for farmer role */}
+        {(role === 'farmer' || role === 'FARMER') && (
+          <>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Maize Price ($ per kg)</label>
+              <input
+                type="number"
+                name="maizePrice"
+                value={formData.maizePrice}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter maize price"
+                step="0.01"
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Potato Price ($ per kg)</label>
+              <input
+                type="number"
+                name="potatoPrice"
+                value={formData.potatoPrice}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter potato price"
+                step="0.01"
+              />
+            </div>
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Wheat Price ($ per kg)</label>
+              <input
+                type="number"
+                name="wheatPrice"
+                value={formData.wheatPrice}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter wheat price"
+                step="0.01"
+              />
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Barley Price ($ per kg)</label>
+                <input
+                  type="number"
+                  name="barleyPrice"
+                  value={formData.barleyPrice}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  placeholder="Enter barley price"
+                  step="0.01"
+                />
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Bean Price ($ per kg)</label>
+                <input
+                  type="number"
+                  name="beanPrice"
+                  value={formData.beanPrice}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  placeholder="Enter bean price"
+                  step="0.01"
+                />
+              </div>
+              <div style={styles.inputGroup}>
+                <label style={styles.label}>Pea Price ($ per kg)</label>
+                <input
+                  type="number"
+                  name="peaPrice"
+                  value={formData.peaPrice}
+                  onChange={handleInputChange}
+                  style={styles.input}
+                  placeholder="Enter pea price"
+                  step="0.01"
+                />
+              </div>
+            </>
+          )}
+
           <button
             style={styles.calculateButton}
             onClick={handleCalculate}
