@@ -9,6 +9,19 @@ const MainPage = () => {
   const navigate = useNavigate();
   const [selectedRole, setSelectedRole] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    n: '',
+    p: '',
+    k: '',
+    ph: '',
+    temperature: '',
+    humidity: '',
+    rainfall: '',
+    zn: '',
+    s: ''
+  });
+  const [scenarios, setScenarios] = useState([]); // Array of scenarios
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   // При загрузке страницы проверяем наличие выбранной роли
   useEffect(() => {
@@ -28,6 +41,19 @@ const MainPage = () => {
     setIsModalOpen(!isModalOpen);
   };
 
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleCalculate = () => {
+    // Add your calculation logic here
+    console.log('Calculating with data:', formData);
+  };
+
   const styles = {
     container: {
       minHeight: '100vh',
@@ -39,29 +65,11 @@ const MainPage = () => {
       position: 'relative',
       overflow: 'hidden'
     },
-    statusBar: {
-      width: '100%',
-      height: '44px',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 20px',
-      boxSizing: 'border-box'
-    },
-    time: {
-      fontWeight: '600',
-      fontSize: '15px'
-    },
-    statusIcons: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: '5px'
-    },
     scenarioSelector: {
-      width: '90%',
+      width: '80%',
       maxWidth: '414px',
-      margin: '20px auto',
-      padding: '16px',
+      margin: '50px auto',
+      padding: '20px',
       backgroundColor: '#f9f9f9',
       borderRadius: '16px',
       display: 'flex',
@@ -69,7 +77,43 @@ const MainPage = () => {
       alignItems: 'center',
       boxShadow: '0 2px 8px rgba(0, 0, 0, 0.05)',
       color: '#888',
-      fontSize: '18px'
+      fontSize: '18px',
+      height: '22px',
+      cursor: 'pointer',
+      position: 'relative', // Added for dropdown positioning
+      zIndex: 200, // Ensure it's above other elements
+    },
+    dropdown: {
+      position: 'absolute',
+      top: '100%',
+      left: 0,
+      right: 0,
+      backgroundColor: '#fff',
+      borderRadius: '16px',
+      marginTop: '8px',
+      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+      overflow: 'hidden',
+      display: isDropdownOpen ? 'block' : 'none',
+    },
+    dropdownItem: {
+      padding: '16px 20px',
+      borderBottom: '1px solid #eee',
+      color: '#666',
+      cursor: 'pointer',
+      '&:hover': {
+        backgroundColor: '#f5f5f5',
+      },
+    },
+    createScenario: {
+      padding: '16px 20px',
+      color: '#0D6E6E',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '8px',
+      cursor: 'pointer',
+      '&:hover': {
+        backgroundColor: '#f5f5f5',
+      },
     },
     title: {
       fontSize: '24px',
@@ -160,7 +204,51 @@ const MainPage = () => {
       backgroundColor: '#0D6E6E',
       boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
       zIndex: 102
-    }
+    },
+    inputContainer: {
+      padding: '40px 20px 20px', // Убрали большой paddingBottom
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '16px',
+      height: '100%',
+      overflow: 'auto',
+    },
+    inputGroup: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: '8px',
+    },
+    label: {
+      fontSize: '14px',
+      color: '#666',
+      fontWeight: '500',
+    },
+    input: {
+      padding: '12px 16px',
+      borderRadius: '8px',
+      border: '1px solid #ddd',
+      fontSize: '16px',
+      outline: 'none',
+      '&:focus': {
+        borderColor: '#0D6E6E',
+      }
+    },
+    calculateButton: {
+      position: 'sticky',
+      bottom: '0',
+      left: '0',
+      right: '0',
+      margin: '20px 20px 70px 20px', // Добавили 40px снизу вместо 20px
+      padding: '16px',
+      backgroundColor: '#0D6E6E',
+      color: 'white',
+      border: 'none',
+      borderRadius: '8px',
+      fontSize: '16px',
+      fontWeight: '500',
+      cursor: 'pointer',
+      boxShadow: '0 2px 8px rgba(13, 110, 110, 0.25)',
+    },
   };
 
   // Отображаем контент только если роль выбрана
@@ -170,32 +258,51 @@ const MainPage = () => {
 
   return (
     <div style={styles.container}>
-      {/* Status Bar */}
-      <div style={styles.statusBar}>
-        <div style={styles.time}>9:41</div>
-        <div style={styles.statusIcons}>
-          <svg width="17" height="12" viewBox="0 0 17 12" fill="none">
-            <rect x="1" y="4" width="3" height="8" fill="black" opacity="0.4"/>
-            <rect x="5" y="2" width="3" height="10" fill="black" opacity="0.6"/>
-            <rect x="9" y="0" width="3" height="12" fill="black" opacity="0.8"/>
-            <rect x="13" y="2" width="3" height="10" fill="black"/>
-          </svg>
-          <svg width="15" height="11" viewBox="0 0 15 11" fill="none">
-            <path d="M1 3.5C1 3.5 3 0.5 7.5 0.5C12 0.5 14 3.5 14 3.5" stroke="black" strokeWidth="1.5"/>
-            <path d="M14 7.5C14 7.5 12 10.5 7.5 10.5C3 10.5 1 7.5 1 7.5" stroke="black" strokeWidth="1.5"/>
-          </svg>
-          <svg width="25" height="12" viewBox="0 0 25 12" fill="none">
-            <rect x="2" y="2" width="19" height="8" rx="2" stroke="black" strokeWidth="1"/>
-            <rect x="22" y="4.5" width="1.5" height="3" rx="0.5" fill="black"/>
-            <rect x="4" y="4" width="15" height="4" rx="1" fill="black"/>
-          </svg>
-        </div>
-      </div>
-
-      {/* Scenario Selector */}
-      <div style={styles.scenarioSelector}>
+      {/* Scenario Selector with Dropdown */}
+      <div 
+        style={styles.scenarioSelector}
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+      >
         <span>Scenarios</span>
-        <ChevronDown size={20} />
+        <ChevronDown 
+          size={20} 
+          style={{
+            transform: isDropdownOpen ? 'rotate(180deg)' : 'rotate(0)',
+            transition: 'transform 0.3s ease'
+          }}
+        />
+        
+        {/* Dropdown Menu */}
+        <div style={styles.dropdown}>
+          {scenarios.length > 0 ? (
+            <>
+              {scenarios.map((scenario, index) => (
+                <div key={index} style={styles.dropdownItem}>
+                  {scenario.name}
+                </div>
+              ))}
+              <div 
+                style={styles.createScenario}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleModal();
+                }}
+              >
+                + Создать сценарий
+              </div>
+            </>
+          ) : (
+            <div 
+              style={styles.createScenario}
+              onClick={(e) => {
+                e.stopPropagation();
+                toggleModal();
+              }}
+            >
+              + Создать сценарий
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Title */}
@@ -221,7 +328,117 @@ const MainPage = () => {
             <ArrowDown style={{ color: 'white' }} />
           </button>
         )}
-        {/* Здесь остальное содержимое модального окна */}
+        <div style={styles.inputContainer}>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Nitrogen (N)</label>
+            <input 
+              type="number" 
+              style={styles.input} 
+              placeholder="Enter N value"
+              name="n"
+              value={formData.n}
+              onChange={handleInputChange}
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Phosphorus (P)</label>
+            <input 
+              type="number" 
+              name="p"
+              value={formData.p}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter P value"
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Potassium (K)</label>
+            <input 
+              type="number" 
+              name="k"
+              value={formData.k}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter K value"
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>pH Level</label>
+            <input 
+              type="number" 
+              name="ph"
+              value={formData.ph}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter pH value"
+              step="0.1"
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Temperature (°C)</label>
+            <input 
+              type="number" 
+              name="temperature"
+              value={formData.temperature}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter temperature"
+              step="0.1"
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Humidity (%)</label>
+            <input 
+              type="number" 
+              name="humidity"
+              value={formData.humidity}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter humidity"
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Rainfall (mm)</label>
+            <input 
+              type="number" 
+              name="rainfall"
+              value={formData.rainfall}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter rainfall"
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Zinc (Zn)</label>
+            <input 
+              type="number" 
+              name="zn"
+              value={formData.zn}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter Zn value"
+            />
+          </div>
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Sulfur (S)</label>
+            <input 
+              type="number" 
+              name="s"
+              value={formData.s}
+              onChange={handleInputChange}
+              style={styles.input} 
+              placeholder="Enter S value"
+            />
+          </div>
+
+          {/* Add Calculate button after all inputs */}
+          <button 
+            style={styles.calculateButton} 
+            onClick={handleCalculate}
+          >
+            Рассчитать
+          </button>
+        </div>
       </div>
     </div>
   );
