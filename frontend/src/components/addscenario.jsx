@@ -27,20 +27,21 @@ const ScenarioNameModal = ({ isOpen, onClose, onSave }) => {
       zIndex: 200,
     },
     modal: {
-      width: '90%',
-      maxWidth: '400px',
+      width: '80%', // уменьшили с 90%
+      maxWidth: '350px', // уменьшили с 400px
       backgroundColor: 'white',
       borderRadius: '20px',
-      padding: '40px 30px',
+      padding: '50px 30px', // увеличили vertical padding с 40px до 50px
       boxShadow: '0 10px 40px rgba(0, 0, 0, 0.2)',
     },
     title: {
-      fontSize: '24px',
+      fontSize: '28px', // увеличили с 24px
       fontWeight: '600',
       color: '#333',
       textAlign: 'center',
       marginBottom: '30px',
       lineHeight: '1.3',
+      fontFamily: 'Bahnschrift, sans-serif', // добавили шрифт Bahnschrift
     },
     input: {
       width: '100%',
@@ -54,8 +55,8 @@ const ScenarioNameModal = ({ isOpen, onClose, onSave }) => {
       boxSizing: 'border-box',
     },
     button: {
-      width: '100%',
-      padding: '16px',
+      width: '60%', // уменьшили с 100%
+      padding: '14px', // уменьшили с 16px
       backgroundColor: '#0D6E6E',
       color: 'white',
       border: 'none',
@@ -64,6 +65,8 @@ const ScenarioNameModal = ({ isOpen, onClose, onSave }) => {
       fontWeight: '600',
       cursor: 'pointer',
       marginBottom: '15px',
+      margin: '0 auto', // центрируем кнопку
+      display: 'block', // для работы margin: auto
     },
     hint: {
       fontSize: '14px',

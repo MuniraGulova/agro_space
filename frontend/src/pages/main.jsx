@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown, ArrowUp, ArrowDown } from 'lucide-react';
-import Card from '../components/Card';
-
+import ScenarioNameModal from '../components/addscenario';
 
 const MainPage = () => {
   const { role } = useParams();
@@ -20,15 +19,23 @@ const MainPage = () => {
     zn: '',
     s: ''
   });
-  const [scenarios, setScenarios] = useState([]); // Array of scenarios
+  const [scenarios, setScenarios] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
+  const [currentScenario, setCurrentScenario] = useState(null);
 
-  // При загрузке страницы проверяем наличие выбранной роли
+
+
+  // Загрузка сценариев из localStorage при старте
   useEffect(() => {
-    // Получаем сохраненную роль из localStorage
+    const savedScenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+    setScenarios(savedScenarios);
+  }, []);
+
+  // Проверка роли
+  useEffect(() => {
     const savedRole = localStorage.getItem('selectedRole');
     
-    // Если роль не выбрана или не соответствует параметру URL, перенаправляем на страницу выбора роли
     if (!savedRole || (role !== savedRole && role !== 'astronaut' && role !== 'farmer')) {
       navigate('/');
     } else {
@@ -36,11 +43,11 @@ const MainPage = () => {
     }
   }, [role, navigate]);
 
-  // Функция для открытия/закрытия модального окна
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -50,8 +57,57 @@ const MainPage = () => {
   };
 
   const handleCalculate = () => {
-    // Add your calculation logic here
     console.log('Calculating with data:', formData);
+    // Здесь будет вызов API
+  };
+
+  // Сохранение сценария в localStorage
+  const handleScenarioSave = (name) => {
+    const scenario = {
+      id: Date.now(),
+      name: name,
+      role: role,
+      parameters: formData,
+      createdAt: new Date().toISOString()
+    };
+    
+    const existingScenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+    const updatedScenarios = [...existingScenarios, scenario];
+    
+    localStorage.setItem('scenarios', JSON.stringify(updatedScenarios));
+    
+    setScenarios(updatedScenarios);
+    setCurrentScenario(scenario);
+    setIsScenarioModalOpen(false);
+  };
+
+  const handleCreateNewScenario = () => {
+    // Очищаем все поля
+    setFormData({
+      n: '',
+      p: '',
+      k: '',
+      ph: '',
+      temperature: '',
+      humidity: '',
+      rainfall: '',
+      zn: '',
+      s: ''
+    });
+    setCurrentScenario(null);
+    setIsScenarioModalOpen(true);
+    setIsDropdownOpen(false);
+  };
+
+
+  // Загрузка сценария (заполнение полей)
+  const loadScenario = (scenarioId) => {
+    const scenario = scenarios.find(s => s.id === scenarioId);
+    if (scenario) {
+      setFormData(scenario.parameters);
+      setCurrentScenario(scenario);
+      setIsDropdownOpen(false);
+    }
   };
 
   const styles = {
@@ -80,8 +136,8 @@ const MainPage = () => {
       fontSize: '18px',
       height: '22px',
       cursor: 'pointer',
-      position: 'relative', // Added for dropdown positioning
-      zIndex: 200, // Ensure it's above other elements
+      position: 'relative',
+      zIndex: 200,
     },
     dropdown: {
       position: 'absolute',
@@ -100,9 +156,7 @@ const MainPage = () => {
       borderBottom: '1px solid #eee',
       color: '#666',
       cursor: 'pointer',
-      '&:hover': {
-        backgroundColor: '#f5f5f5',
-      },
+      transition: 'background-color 0.2s',
     },
     createScenario: {
       padding: '16px 20px',
@@ -111,9 +165,8 @@ const MainPage = () => {
       alignItems: 'center',
       gap: '8px',
       cursor: 'pointer',
-      '&:hover': {
-        backgroundColor: '#f5f5f5',
-      },
+      fontWeight: '500',
+      transition: 'background-color 0.2s',
     },
     title: {
       fontSize: '24px',
@@ -165,7 +218,7 @@ const MainPage = () => {
       position: 'fixed',
       width: '100%',
       height: '673px',
-      bottom: isModalOpen ? '0' : '-673px', // Анимация снизу
+      bottom: isModalOpen ? '0' : '-673px',
       left: '0',
       transform: 'none',
       backgroundColor: 'white',
@@ -188,25 +241,8 @@ const MainPage = () => {
       backgroundColor: '#0D6E6E',
       boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
     },
-    modalCloseButton: {
-      position: 'absolute',
-      top: '-28px', // Половина высоты кнопки, чтобы она находилась на границе модального окна
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: '56px',
-      height: '56px',
-      borderRadius: '50%',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#0D6E6E',
-      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
-      zIndex: 102
-    },
     inputContainer: {
-      padding: '40px 20px 20px', // Убрали большой paddingBottom
+      padding: '40px 20px 20px',
       display: 'flex',
       flexDirection: 'column',
       gap: '16px',
@@ -229,16 +265,13 @@ const MainPage = () => {
       border: '1px solid #ddd',
       fontSize: '16px',
       outline: 'none',
-      '&:focus': {
-        borderColor: '#0D6E6E',
-      }
     },
     calculateButton: {
       position: 'sticky',
       bottom: '0',
       left: '0',
       right: '0',
-      margin: '20px 20px 70px 20px', // Добавили 40px снизу вместо 20px
+      margin: '20px 20px 70px 20px',
       padding: '16px',
       backgroundColor: '#0D6E6E',
       color: 'white',
@@ -251,19 +284,20 @@ const MainPage = () => {
     },
   };
 
-  // Отображаем контент только если роль выбрана
   if (!selectedRole) {
-    return null; // Или можно показать загрузку: <div>Loading...</div>
+    return null;
   }
+
+  // Фильтруем сценарии по текущей роли
+  const roleScenarios = scenarios.filter(s => s.role === role);
 
   return (
     <div style={styles.container}>
-      {/* Scenario Selector with Dropdown */}
       <div 
         style={styles.scenarioSelector}
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
       >
-        <span>Scenarios</span>
+        <span>{currentScenario ? currentScenario.name : 'Scenarios'}</span>
         <ChevronDown 
           size={20} 
           style={{
@@ -272,12 +306,20 @@ const MainPage = () => {
           }}
         />
         
-        {/* Dropdown Menu */}
         <div style={styles.dropdown}>
-          {scenarios.length > 0 ? (
+          {roleScenarios.length > 0 ? (
             <>
-              {scenarios.map((scenario, index) => (
-                <div key={index} style={styles.dropdownItem}>
+              {roleScenarios.map((scenario) => (
+                <div 
+                  key={scenario.id} 
+                  style={styles.dropdownItem}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    loadScenario(scenario.id);
+                  }}
+                  onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                  onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
+                >
                   {scenario.name}
                 </div>
               ))}
@@ -285,8 +327,10 @@ const MainPage = () => {
                 style={styles.createScenario}
                 onClick={(e) => {
                   e.stopPropagation();
-                  toggleModal();
+                  handleCreateNewScenario(); // Вместо setIsScenarioModalOpen(true)
                 }}
+                onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
               >
                 + Создать сценарий
               </div>
@@ -296,8 +340,11 @@ const MainPage = () => {
               style={styles.createScenario}
               onClick={(e) => {
                 e.stopPropagation();
-                toggleModal();
+                setIsScenarioModalOpen(true);
+                setIsDropdownOpen(false);
               }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = 'transparent'}
             >
               + Создать сценарий
             </div>
@@ -305,23 +352,18 @@ const MainPage = () => {
         </div>
       </div>
 
-      {/* Title */}
-      <h1 style={styles.title}>Scenario for Texas</h1>
+      <h1 style={styles.title}>{currentScenario ? currentScenario.name : 'Scenario for Texas'}</h1>
 
-      {/* Center Text */}
       <div style={styles.centerText}>Add your first scenario</div>
 
-      {/* Button */}
       <div style={styles.buttonContainer}>
         <button style={styles.button} onClick={toggleModal}>
           <ArrowUp style={{ color: 'white' }} />
         </button>
       </div>
 
-      {/* Modal Overlay */}
       <div style={styles.modalOverlay} onClick={toggleModal}></div>
 
-      {/* Modal Content */}
       <div style={styles.modal}>
         {isModalOpen && (
           <button style={styles.modalButton} onClick={toggleModal}>
@@ -431,7 +473,6 @@ const MainPage = () => {
             />
           </div>
 
-          {/* Add Calculate button after all inputs */}
           <button 
             style={styles.calculateButton} 
             onClick={handleCalculate}
@@ -440,6 +481,12 @@ const MainPage = () => {
           </button>
         </div>
       </div>
+
+      <ScenarioNameModal 
+        isOpen={isScenarioModalOpen}
+        onClose={() => setIsScenarioModalOpen(false)}
+        onSave={handleScenarioSave}
+      />
     </div>
   );
 };
