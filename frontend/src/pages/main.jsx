@@ -148,6 +148,53 @@ const MainPage = () => {
       }
     }
 
+    // Автоматически сохраняем сценарий перед расчетом
+    const timestamp = new Date().toLocaleString('ru-RU', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    const scenarioName = selectedScenario ? selectedScenario.name : `${role} Scenario ${timestamp}`;
+    
+    let scenario;
+    if (selectedScenario) {
+      // Обновляем существующий сценарий
+      scenario = {
+        ...selectedScenario,
+        parameters: { ...formData }
+      };
+    } else {
+      // Создаем новый сценарий
+      scenario = {
+        id: Date.now(),
+        name: scenarioName,
+        role: role,
+        parameters: { ...formData },
+        createdAt: new Date().toISOString(),
+        description: 'Auto-saved scenario'
+      };
+    }
+
+    // Сохраняем сценарий в localStorage
+    const existingScenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+    let updatedScenarios;
+    
+    if (selectedScenario) {
+      updatedScenarios = existingScenarios.map(s => 
+        s.id === selectedScenario.id ? scenario : s
+      );
+    } else {
+      updatedScenarios = [...existingScenarios, scenario];
+    }
+    
+    localStorage.setItem('scenarios', JSON.stringify(updatedScenarios));
+    localStorage.setItem('selectedScenarioId', scenario.id.toString());
+    setScenarios(updatedScenarios);
+    setSelectedScenario(scenario);
+
     // Если все поля заполнены, продолжаем с отправкой данных
     const payload = {
         mode: role === 'astronaut' ? 'STATION' : 'FARM',
@@ -157,7 +204,6 @@ const MainPage = () => {
               square: 100
             } 
           : {
-              // Убираем дефолтные значения, используем только значения из формы
               Maize: { price: Number(formData.maizePrice) },
               Potato: { price: Number(formData.potatoPrice) },
               Wheat: { price: Number(formData.wheatPrice) },
@@ -848,19 +894,6 @@ const MainPage = () => {
                 />
               </div>
             </>
-          )}
-
-          {selectedScenario === null && (
-            <button
-              style={{
-                ...styles.calculateButton,
-                backgroundColor: '#2D9CDB',
-                margin: '0 20px 10px 20px'
-              }}
-              onClick={() => setIsScenarioModalOpen(true)}
-            >
-              Save as New Scenario
-            </button>
           )}
 
           <button
