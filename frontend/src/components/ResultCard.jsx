@@ -27,7 +27,7 @@ const ResultCard = ({ title, titleRu, productivity, value, isAstronaut, image })
             objectFit: 'cover',
             borderRadius: '12px',
             zIndex: 1
-          }} 
+          }}
         />
       )}
       
