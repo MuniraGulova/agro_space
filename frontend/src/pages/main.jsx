@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
-import Card from '../components/Card';
-
+import ScenarioNameModal from '../components/addscenario';
 
 const MainPage = () => {
   const { role } = useParams();
@@ -27,10 +26,21 @@ const MainPage = () => {
     zn: '',
     s: ''
   });
+  const [scenarios, setScenarios] = useState([]);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
+  const [currentScenario, setCurrentScenario] = useState(null);
 
-  // При загрузке страницы проверяем наличие выбранной роли
+
+
+  // Загрузка сценариев из localStorage при старте
   useEffect(() => {
-    // Получаем сохраненную роль из localStorage
+    const savedScenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+    setScenarios(savedScenarios);
+  }, []);
+
+  // Проверка роли
+  useEffect(() => {
     const savedRole = localStorage.getItem('selectedRole');
 
     // Если роль не выбрана или не соответствует параметру URL, перенаправляем на страницу выбора роли
@@ -41,11 +51,11 @@ const MainPage = () => {
     }
   }, [role, navigate]);
 
-  // Функция для открытия/закрытия модального окна
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
+  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -143,9 +153,7 @@ const MainPage = () => {
       borderBottom: '1px solid #eee',
       color: '#666',
       cursor: 'pointer',
-      '&:hover': {
-        backgroundColor: '#f5f5f5',
-      },
+      transition: 'background-color 0.2s',
     },
     createScenario: {
       padding: '16px 20px',
@@ -154,9 +162,8 @@ const MainPage = () => {
       alignItems: 'center',
       gap: '8px',
       cursor: 'pointer',
-      '&:hover': {
-        backgroundColor: '#f5f5f5',
-      },
+      fontWeight: '500',
+      transition: 'background-color 0.2s',
     },
     title: {
       fontSize: '24px',
@@ -208,7 +215,7 @@ const MainPage = () => {
       position: 'fixed',
       width: '100%',
       height: '673px',
-      bottom: isModalOpen ? '0' : '-673px', // Анимация снизу
+      bottom: isModalOpen ? '0' : '-673px',
       left: '0',
       transform: 'none',
       backgroundColor: 'white',
@@ -231,25 +238,8 @@ const MainPage = () => {
       backgroundColor: '#0D6E6E',
       boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
     },
-    modalCloseButton: {
-      position: 'absolute',
-      top: '-28px', // Половина высоты кнопки, чтобы она находилась на границе модального окна
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: '56px',
-      height: '56px',
-      borderRadius: '50%',
-      border: 'none',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: '#0D6E6E',
-      boxShadow: '0 4px 12px rgba(13, 110, 110, 0.25)',
-      zIndex: 102
-    },
     inputContainer: {
-      padding: '40px 20px 20px', // Убрали большой paddingBottom
+      padding: '40px 20px 20px',
       display: 'flex',
       flexDirection: 'column',
       gap: '16px',
@@ -272,16 +262,13 @@ const MainPage = () => {
       border: '1px solid #ddd',
       fontSize: '16px',
       outline: 'none',
-      '&:focus': {
-        borderColor: '#0D6E6E',
-      }
     },
     calculateButton: {
       position: 'sticky',
       bottom: '0',
       left: '0',
       right: '0',
-      margin: '20px 20px 70px 20px', // Добавили 40px снизу вместо 20px
+      margin: '20px 20px 70px 20px',
       padding: '16px',
       backgroundColor: '#0D6E6E',
       color: 'white',
@@ -298,6 +285,9 @@ const MainPage = () => {
   if (selectedRole === null) {
     return <div style={{ ...styles.container, justifyContent: 'center', alignItems: 'center' }}>Loading...</div>;
   }
+
+  // Фильтруем сценарии по текущей роли
+  const roleScenarios = scenarios.filter(s => s.role === role);
 
   return (
     <div style={styles.container}>
@@ -421,17 +411,14 @@ const MainPage = () => {
         </div>
       )}
 
-      {/* Button */}
       <div style={styles.buttonContainer}>
         <button style={styles.button} onClick={toggleModal}>
           <ArrowUp style={{ color: 'white' }} />
         </button>
       </div>
 
-      {/* Modal Overlay */}
       <div style={styles.modalOverlay} onClick={toggleModal}></div>
 
-      {/* Modal Content */}
       <div style={styles.modal}>
         {isModalOpen && (
           <button style={styles.modalButton} onClick={toggleModal}>
@@ -550,6 +537,12 @@ const MainPage = () => {
           </button>
         </div>
       </div>
+
+      <ScenarioNameModal 
+        isOpen={isScenarioModalOpen}
+        onClose={() => setIsScenarioModalOpen(false)}
+        onSave={handleScenarioSave}
+      />
     </div>
   );
 };
