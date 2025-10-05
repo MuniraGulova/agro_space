@@ -90,33 +90,33 @@ const MainPage = () => {
 
     // Если все поля заполнены, продолжаем с отправкой данных
     const payload = {
-      mode: role === 'astronaut' ? 'STATION' : 'FARM',
-      depParam: role === 'astronaut' 
-        ? { 
-            peopleNumber: Number(formData.peopleCount),
-            square: 100  // This could also be made into a form field if needed
-          } 
-        : {
-            // Use actual prices from form data if you want them to be configurable
-            Maize: { price: Number(formData.maizePrice) },
-            Potato: { price: Number(formData.potatoPrice) },
-            Wheat: { price: Number(formData.wheatPrice) },
-            Barley: { price: Number(formData.barleyPrice) },
-            Bean: { price: Number(formData.beanPrice) },
-            Pea: { price: Number(formData.peaPrice) }
-          },
-      args: {
-        N: Number(formData.n),
-        P: Number(formData.p),
-        K: Number(formData.k),
-        ph: Number(formData.ph),
-        temperature: Number(formData.temperature),
-        humidity: Number(formData.humidity),
-        rainfall: Number(formData.rainfall),
-        Zn: Number(formData.zn),
-        S: Number(formData.s)
-      }
-    };
+        mode: role === 'astronaut' ? 'STATION' : 'FARM',
+        depParam: role === 'astronaut' 
+          ? { 
+              peopleNumber: Number(formData.peopleCount),
+              square: 100
+            } 
+          : {
+              // Убираем дефолтные значения, используем только значения из формы
+              Maize: { price: Number(formData.maizePrice) },
+              Potato: { price: Number(formData.potatoPrice) },
+              Wheat: { price: Number(formData.wheatPrice) },
+              Barley: { price: Number(formData.barleyPrice) },
+              Bean: { price: Number(formData.beanPrice) },
+              Pea: { price: Number(formData.peaPrice) }
+            },
+        args: {
+          N: Number(formData.n),
+          P: Number(formData.p),
+          K: Number(formData.k),
+          ph: Number(formData.ph),
+          temperature: Number(formData.temperature),
+          humidity: Number(formData.humidity),
+          rainfall: Number(formData.rainfall),
+          Zn: Number(formData.zn),
+          S: Number(formData.s)
+        }
+      };
 
     try {
       // Send POST request to server
