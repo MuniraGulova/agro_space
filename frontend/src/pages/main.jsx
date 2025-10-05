@@ -909,7 +909,7 @@ const MainPage = () => {
             style={styles.calculateButton}
             onClick={handleCalculate}
           >
-            Рассчитать
+            Calculate
           </button>
         </div>
       </div>
