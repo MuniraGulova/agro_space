@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
-import astronautImg from './astronaut.png'; // добавь свои картинки
+import astronautImg from './astronaut.png'; 
 import farmerImg from './farmer.png';
 
 const RoleSelectionPage = () => {
   const [selectedProfile, setSelectedProfile] = useState(null);
   const navigate = useNavigate();
+  const { role } = useParams();
 
   const handleContinue = () => {
     if (selectedProfile) {

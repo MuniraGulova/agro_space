@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ChevronDown, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import ScenarioNameModal from '../components/addscenario';
+import ResultCard from '../components/ResultCard';
 
 const MainPage = () => {
   const { role } = useParams();
@@ -10,11 +11,7 @@ const MainPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedScenario, setSelectedScenario] = useState(null);
-  const [scenarios] = useState([
-    { id: 1, name: 'Irrigation Plan', description: 'Optimize water usage' },
-    { id: 2, name: 'Soil Analysis', description: 'Check soil nutrients' },
-    { id: 3, name: 'Growth Forecast', description: 'Predict crop yields' }
-  ]);
+  const [scenarios, setScenarios] = useState([]);
   const [formData, setFormData] = useState({
     n: '',
     p: '',
@@ -24,12 +21,11 @@ const MainPage = () => {
     humidity: '',
     rainfall: '',
     zn: '',
-    s: ''
+    s: '',
+    peopleCount: '10' // Добавили поле для космонавта
   });
   const [isScenarioModalOpen, setIsScenarioModalOpen] = useState(false);
-  const [currentScenario, setCurrentScenario] = useState(null);
-
-
+  const [calcResult, setCalcResult] = useState(null);
 
   // Загрузка сценариев из localStorage при старте
   useEffect(() => {
@@ -40,8 +36,6 @@ const MainPage = () => {
   // Проверка роли
   useEffect(() => {
     const savedRole = localStorage.getItem('selectedRole');
-
-    // Если роль не выбрана или не соответствует параметру URL, перенаправляем на страницу выбора роли
     if (!savedRole || (role !== savedRole && role !== 'astronaut' && role !== 'farmer')) {
       navigate('/');
     } else {
@@ -53,7 +47,6 @@ const MainPage = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -62,13 +55,22 @@ const MainPage = () => {
     }));
   };
 
-  const [calcResult, setCalcResult] = useState(null);
-
   const handleCalculate = async () => {
-    // Build payload using form values, with exact numbers requested by user as defaults
     const payload = {
-      mode: 'STATION',
-      depParam: { peopleNumber: 10, square: 100 },
+      mode: role === 'astronaut' ? 'STATION' : 'FARM',
+      depParam: role === 'astronaut' 
+        ? { 
+            peopleNumber: Number(formData.peopleCount) || 10, // Берем из формы
+            square: 100 
+          } 
+        : {
+            Maize: { price: 200 },
+            Potato: { price: 50 },
+            Wheat: { price: 150 },
+            Barley: { price: 100 },
+            Bean: { price: 180 },
+            Pea: { price: 120 }
+          },
       args: {
         N: Number(formData.n) || 1,
         P: Number(formData.p) || 1,
@@ -83,7 +85,7 @@ const MainPage = () => {
     };
 
     try {
-      const res = await fetch('http://localhost:5000/api/calculate', {
+      const res = await fetch('http://localhost:5000/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
@@ -94,10 +96,58 @@ const MainPage = () => {
       const data = await res.json();
       console.log('Calculate response:', data);
       setCalcResult(data);
+      
+      setIsModalOpen(false);
     } catch (err) {
       console.error('Calculate error:', err);
-      setCalcResult({ error: err.message });
+      alert('Ошибка при расчете: ' + err.message);
     }
+  };
+
+  // Сохранение сценария
+  const handleScenarioSave = (name) => {
+    const scenario = {
+      id: Date.now(),
+      name: name,
+      role: role,
+      parameters: formData,
+      createdAt: new Date().toISOString(),
+      description: 'Custom scenario'
+    };
+    
+    const existingScenarios = JSON.parse(localStorage.getItem('scenarios') || '[]');
+    const updatedScenarios = [...existingScenarios, scenario];
+    
+    localStorage.setItem('scenarios', JSON.stringify(updatedScenarios));
+    setScenarios(updatedScenarios);
+    setSelectedScenario(scenario);
+    setIsScenarioModalOpen(false);
+  };
+
+  // Загрузка сценария
+  const loadScenario = (scenario) => {
+    setFormData(scenario.parameters);
+    setSelectedScenario(scenario);
+    setIsDropdownOpen(false);
+  };
+
+  // Создание нового сценария
+  const handleCreateNewScenario = () => {
+    setFormData({
+      n: '',
+      p: '',
+      k: '',
+      ph: '',
+      temperature: '',
+      humidity: '',
+      rainfall: '',
+      zn: '',
+      s: '',
+      peopleCount: '10' // Не забудьте добавить
+    });
+    setSelectedScenario(null);
+    setIsScenarioModalOpen(true);
+    setIsDropdownOpen(false);
   };
 
   const styles = {
@@ -145,23 +195,6 @@ const MainPage = () => {
       transform: isDropdownOpen ? 'translateY(0)' : 'translateY(-10px)',
       transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
       border: '1px solid #E2E8F0'
-    },
-    dropdownItem: {
-      padding: '16px 20px',
-      borderBottom: '1px solid #eee',
-      color: '#666',
-      cursor: 'pointer',
-      transition: 'background-color 0.2s',
-    },
-    createScenario: {
-      padding: '16px 20px',
-      color: '#0D6E6E',
-      display: 'flex',
-      alignItems: 'center',
-      gap: '8px',
-      cursor: 'pointer',
-      fontWeight: '500',
-      transition: 'background-color 0.2s',
     },
     title: {
       fontSize: '24px',
@@ -240,7 +273,7 @@ const MainPage = () => {
       padding: '40px 20px 20px',
       display: 'flex',
       flexDirection: 'column',
-      gap: '16px',
+      gap: '84px',
       height: '100%',
       overflow: 'auto',
     },
@@ -279,17 +312,17 @@ const MainPage = () => {
     },
   };
 
-  // Show loading while checking role
+  console.log('Current role:', role); // Добавьте эту строку
+  console.log('Is astronaut?', role === 'astronaut'); // И эту
+
   if (selectedRole === null) {
     return <div style={{ ...styles.container, justifyContent: 'center', alignItems: 'center' }}>Loading...</div>;
   }
 
-  // Фильтруем сценарии по текущей роли
   const roleScenarios = scenarios.filter(s => s.role === role);
 
   return (
     <div style={styles.container}>
-      {/* Scenario Selector with Dropdown */}
       <div style={styles.scenarioSelector}>
         <div 
           style={{
@@ -316,9 +349,8 @@ const MainPage = () => {
           />
         </div>
 
-        {/* Dropdown Menu */}
         <div style={styles.dropdown}>
-          {scenarios.map((scenario) => (
+          {roleScenarios.map((scenario) => (
             <div
               key={scenario.id}
               style={{
@@ -329,21 +361,16 @@ const MainPage = () => {
                 transition: 'all 0.2s ease',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '4px',
-                ':hover': {
-                  backgroundColor: '#F7FAFC'
-                }
+                gap: '4px'
               }}
-              onClick={() => {
-                setSelectedScenario(scenario);
-                setIsDropdownOpen(false);
-              }}
+              onClick={() => loadScenario(scenario)}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F7FAFC'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = selectedScenario?.id === scenario.id ? '#F0F9F9' : 'transparent'}
             >
               <span style={{ fontWeight: '500' }}>{scenario.name}</span>
-              <span style={{ 
-                fontSize: '14px',
-                color: '#718096'
-              }}>{scenario.description}</span>
+              <span style={{ fontSize: '14px', color: '#718096' }}>
+                {scenario.description || 'Custom scenario'}
+              </span>
             </div>
           ))}
           <div
@@ -359,9 +386,10 @@ const MainPage = () => {
             }}
             onClick={(e) => {
               e.stopPropagation();
-              toggleModal();
-              setIsDropdownOpen(false);
+              handleCreateNewScenario();
             }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#F7FAFC'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <Plus size={16} />
             <span>Create New Scenario</span>
@@ -369,13 +397,12 @@ const MainPage = () => {
         </div>
       </div>
 
-      {/* Title */}
       <h1 style={styles.title}>
         {selectedScenario ? selectedScenario.name : 'Select a Scenario'}
       </h1>
 
-      {/* Center Text */}
-      {!selectedScenario && (
+      {/* Center content - либо инструкция, либо результаты */}
+      {!selectedScenario && !calcResult && (
         <div style={{
           ...styles.centerText,
           display: 'flex',
@@ -406,6 +433,55 @@ const MainPage = () => {
             <Plus size={16} />
             Select Scenario
           </button>
+        </div>
+      )}
+
+      {/* Results display */}
+      {calcResult && !calcResult.error && (
+        <div style={{
+          width: '90%',
+          maxWidth: '414px',
+          margin: '0 auto',
+          paddingBottom: '120px',
+          overflowY: 'auto',
+          height: 'calc(100vh - 300px)'
+        }}>
+          <div style={{
+            marginBottom: '20px',
+            padding: '16px',
+            backgroundColor: '#E6F7F7',
+            borderRadius: '12px',
+            textAlign: 'center'
+          }}>
+            <h2 style={{
+              margin: 0,
+              fontSize: '20px',
+              color: '#0D6E6E',
+              fontWeight: '600'
+            }}>
+              {role === 'astronaut' 
+                ? `Total: ${calcResult.total.toFixed(0)} days` 
+                : `Total revenue: $${calcResult.total.toFixed(0)}`
+              }
+            </h2>
+          </div>
+
+          {calcResult.cultures.map((culture, index) => (
+            <ResultCard
+              key={index}
+              title={culture.culture}
+              titleRu={culture.culture} 
+              productivity={culture.productivity}
+              value={culture.value}
+              isAstronaut={role === 'astronaut'}
+            />
+          ))}
+        </div>
+      )}
+
+      {calcResult && calcResult.error && (
+        <div style={styles.centerText}>
+          <span style={{ color: '#E53E3E' }}>Error: {calcResult.error}</span>
         </div>
       )}
 
@@ -526,7 +602,22 @@ const MainPage = () => {
             />
           </div>
 
-          {/* Add Calculate button after all inputs */}
+          {/* Add new field for astronaut role */}
+          {(role === 'astronaut' || role === 'ASTRONAUT') && (
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Number of People</label>
+              <input
+                type="number"
+                name="peopleCount"
+                value={formData.peopleCount}
+                onChange={handleInputChange}
+                style={styles.input}
+                placeholder="Enter number of people"
+                min="1"
+              />
+            </div>
+          )}
+
           <button
             style={styles.calculateButton}
             onClick={handleCalculate}
