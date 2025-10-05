@@ -88,6 +88,28 @@ const MainPage = () => {
       return;
     }
 
+    if (role === 'farmer' || role === 'FARMER') {
+      const priceFields = [
+        { name: 'maizePrice', label: 'Maize Price' },
+        { name: 'potatoPrice', label: 'Potato Price' },
+        { name: 'wheatPrice', label: 'Wheat Price' },
+        { name: 'barleyPrice', label: 'Barley Price' },
+        { name: 'beanPrice', label: 'Bean Price' },
+        { name: 'peaPrice', label: 'Pea Price' }
+      ];
+
+      const emptyPrices = priceFields.filter(field => 
+        formData[field.name] === '' || formData[field.name] === null || formData[field.name] === undefined
+      );
+
+      if (emptyPrices.length > 0) {
+        setCalcResult({
+          error: `Пожалуйста, заполните цены: ${emptyPrices.map(f => f.label).join(', ')}`
+        });
+        return;
+      }
+    }
+
     // Если все поля заполнены, продолжаем с отправкой данных
     const payload = {
         mode: role === 'astronaut' ? 'STATION' : 'FARM',
@@ -187,7 +209,13 @@ const MainPage = () => {
       rainfall: '',
       zn: '',
       s: '',
-      peopleCount: '10' // Не забудьте добавить
+      peopleCount: '10',
+      maizePrice: '',      // ДОБАВЬТЕ
+      potatoPrice: '',     // ЭТИ
+      wheatPrice: '',      // СТРОКИ
+      barleyPrice: '',     
+      beanPrice: '',       
+      peaPrice: ''         
     });
     setSelectedScenario(null);
     setIsScenarioModalOpen(true);
