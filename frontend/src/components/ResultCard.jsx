@@ -1,7 +1,6 @@
 import React from 'react';
 
-const ResultCard = ({ 
-  title, 
+const ResultCard = ({
   titleRu,
   productivity,
   value,
