@@ -152,3 +152,46 @@ if __name__ == "__main__":
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)
+
+js_station = {
+    "mode": "STATION",
+    "depParam": {
+        "peopleNumber": 10,
+        "square": 100
+    },
+    "args": {
+        "N": 10,
+        "P": 10,
+        "K": 10,
+        "ph": 10,
+        "temperature": 10,
+        "humidity": 10,
+        "rainfall": 10,
+        "Zn": 10,
+        "S": 10
+    }
+}
+
+js_farm = {
+    "mode": "FARM",
+    "depParam": {
+        "culture": {
+            "price": 3,
+        },
+        "culture2": {
+            "price": 4,
+        }
+    },
+    "args": {
+        "N": 10,
+        "P": 10,
+        "K": 10,
+        "ph": 10,
+        "temperature": 10,
+        "humidity": 10,
+        "rainfall": 10,
+        "Zn": 10,
+        "S": 10
+    }
+}
+
